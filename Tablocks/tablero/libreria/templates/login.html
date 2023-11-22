@@ -4,7 +4,7 @@
 
 {% block content %}
  <h2>Iniciar Sesion</h2> {{ msg }}
- <form method="post"></form>
+ <form method="post">
   {% csrf_token %}   
   {{ form.as_p }}
   <button type="submit" class="btn btn-primary">Iniciar Sesion</button>
