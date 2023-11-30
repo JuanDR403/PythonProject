@@ -5,11 +5,12 @@
 {% block title %}Tarjetas del Tablero: {{ tablero.nombre }}{% endblock %}
 
 {% block content %}
+<center>
     <div class="container mt-5">
         <h2>Tarjetas del Tablero: {{ tablero.nombre }}</h2>
         
-         <!-- Botón para agregar tarjeta -->
-         <button type="button" class="btn btn-success" data-toggle="modal" data-target="#agregarTarjetaModal">
+        <!-- Botón para agregar tarjeta -->
+        <button type="button" class="btn btn-success" data-toggle="modal" data-target="#agregarTarjetaModal">
             Agregar Tarjeta
         </button>
 
@@ -46,74 +47,89 @@
                                 {% for tarea in tareas %}
                                     {% if tarea.id_tarjeta_id == tarjeta.id %}
                                         <p>Tarea: {{ tarea.descripcion }}</p>
-                                        <p>Estado: {{ tarea.estado }}</p>
-                                        <!-- Puedes mostrar más detalles de la tarea según tus necesidades -->
+                                        <!-- Formulario para editar el estado de la tarea -->
+                                        <form method="post" action="{% url 'tarjetaview' tablero.id %}">
+                                            {% csrf_token %}
+                                            {{ tarea_form.as_p }}
+                                            <input type="hidden" name="tarea_id" value="{{ tarea.id }}">
+                                            <button type="submit" name="editar_tarea" class="btn btn-primary">Editar Tarea</button>
+                                        </form>
                                     {% endif %}
                                 {% endfor %}
 
                                 <h6>Comentarios:</h6>
                                 {% for comentario in comentarios %}
                                     {% if comentario.tarjeta_id == tarjeta.id %}
-                                        <p>Comentario: {{ comentario.contenido }}</p>
+                                        <p>Comentario de {{ comentario.usuario.username }}: {{ comentario.contenido }}</p>
                                         <!-- Puedes mostrar más detalles del comentario según tus necesidades -->
                                     {% endif %}
                                 {% endfor %}
+
                             </div>
                             <div class="modal-footer">
                                 <!-- Formulario para agregar tarea -->
-                                <form method="post" action="{% url 'tarjetaview' tablero.id %}">
+                                <form method="post" action="{% url 'tarjetaview' tablero.id %}" class="form-inline">
                                     {% csrf_token %}
-                                    {{ tarea_form.as_p }}
+                                    <div class="form-group mx-sm-3 mb-2">
+                                        {{ tarea_form.descripcion }}
+                                    </div>
+                                    <div class="form-group mx-sm-3 mb-2">
+                                        {{ tarea_form.estado }}
+                                    </div>
                                     <input type="hidden" name="tarjeta_id" value="{{ tarjeta.id }}">
-                                    <button type="submit" name="agregar_tarea" class="btn btn-primary">Agregar Tarea</button>
+                                    <button type="submit" name="agregar_tarea" class="btn btn-primary mb-2">Agregar Tarea</button>
                                 </form>
                             
                                 <!-- Formulario para agregar comentario -->
-                                <form method="post" action="{% url 'tarjetaview' tablero.id %}">
+                                <form method="post" action="{% url 'tarjetaview' tablero.id %}" class="form-inline">
                                     {% csrf_token %}
-                                    {{ comentario_form.as_p }}
+                                    <div class="form-group mx-sm-3 mb-2" style="border-radius: 10px;">
+                                        {{ comentario_form.contenido }}
+                                    </div>
                                     <input type="hidden" name="tarjeta_id" value="{{ tarjeta.id }}">
-                                    <button type="submit" name="agregar_comentario" class="btn btn-primary">Agregar Comentario</button>
+                                    <button type="submit" name="agregar_comentario" class="btn btn-primary mb-2">Agregar Comentario</button>
                                 </form>
                             </div>
+                            
                             
                         </div>
                     </div>
                 </div>
-                                <!-- Modal para agregar tarjeta -->
-                <div class="modal fade" id="agregarTarjetaModal" tabindex="-1" role="dialog" aria-labelledby="agregarTarjetaModalLabel" aria-hidden="true">
-                    <div class="modal-dialog" role="document">
-                        <div class="modal-content">
-                            <div class="modal-header">
-                                <h5 class="modal-title" id="agregarTarjetaModalLabel">Agregar Tarjeta</h5>
-                                <button type="button" class="close" data-dismiss="modal" aria-label="Close">
-                                    <span aria-hidden="true">&times;</span>
-                                </button>
-                            </div>
-                            <div class="modal-body">
-                                <!-- Formulario para agregar tarjeta -->
-                                <form method="post" action="{% url 'tarjetaview' tablero.id %}">
-                                    {% csrf_token %}
-                                    <div class="form-group">
-                                        <label for="id_nombre">Nombre:</label>
-                                        <input type="text" name="nombre" class="form-control" id="id_nombre" required>
-                                    </div>
-                                    <div class="form-group">
-                                        <label for="id_descripcion">Descripción:</label>
-                                        <textarea name="descripcion" class="form-control" id="id_descripcion" required></textarea>
-                                    </div>
-                                    <div class="form-group">
-                                        <label for="id_etiquetas">Etiquetas:</label>
-                                        <input type="text" name="etiquetas" class="form-control" id="id_etiquetas" required>
-                                    </div>
-                                    <button type="submit" class="btn btn-primary">Guardar</button>
-                                </form>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-
             {% endfor %}
         </div>
+
+        <!-- Modal para agregar tarjeta -->
+        <div class="modal fade" id="agregarTarjetaModal" tabindex="-1" role="dialog" aria-labelledby="agregarTarjetaModalLabel" aria-hidden="true">
+            <div class="modal-dialog" role="document">
+                <div class="modal-content">
+                    <div class="modal-header">
+                        <h5 class="modal-title" id="agregarTarjetaModalLabel">Agregar Tarjeta</h5>
+                        <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                            <span aria-hidden="true">&times;</span>
+                        </button>
+                    </div>
+                    <div class="modal-body">
+                        <!-- Formulario para agregar tarjeta -->
+                        <form method="post" action="{% url 'tarjetaview' tablero.id %}">
+                            {% csrf_token %}
+                            <div class="form-group">
+                                <label for="id_nombre">Nombre:</label>
+                                <input type="text" name="nombre" class="form-control" id="id_nombre" required>
+                            </div>
+                            <div class="form-group">
+                                <label for="id_descripcion">Descripción:</label>
+                                <textarea name="descripcion" class="form-control" id="id_descripcion" required></textarea>
+                            </div>
+                            <div class="form-group">
+                                <label for="id_etiquetas">Etiquetas:</label>
+                                <input type="text" name="etiquetas" class="form-control" id="id_etiquetas" required>
+                            </div>
+                            <button type="submit" name="agregar_tarjeta" class="btn btn-primary">Guardar</button>
+                        </form>
+                    </div>
+                </div>
+            </div>
+        </div>
     </div>
+</center>
 {% endblock %}

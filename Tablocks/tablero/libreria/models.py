@@ -44,4 +44,4 @@ class Comentario(models.Model):
     fecha_comentario = models.DateTimeField(auto_now_add=True)
 
     def __str__(self):
-        return f'Comentario de {self.usuario.username} en {self.tarjeta.nombre}'
+        return self.contenido
