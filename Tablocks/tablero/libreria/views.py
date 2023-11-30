@@ -1,6 +1,10 @@
-from django.shortcuts import render, redirect
+from django.shortcuts import render, redirect, get_object_or_404
 from django.contrib.auth.forms import UserCreationForm, AuthenticationForm
+from django.contrib.auth.decorators import login_required
 from django.contrib.auth import authenticate, login, logout
+from django.http import JsonResponse
+from .models import Tablero, Tarjeta, Tarea, Comentario
+from .forms import TareaForm, ComentarioForm, TarjetaForm
 
 
 # Create your views here.
@@ -23,7 +27,15 @@ def signup(request):
         return render(request, 'signup.html', {'form': form})
 
 def home(request):
-    return render(request, 'home.html')
+    # Obtener todos los tableros
+    tableros = Tablero.objects.all()
+
+    # Pasar los tableros al contexto
+    context = {
+        'tableros': tableros
+    }
+
+    return render(request, 'home.html', context)
 
 def signout(request):
     logout(request)
@@ -49,5 +61,61 @@ def signin(request):
         return render(request, 'login.html', {'form': form})
     
 
-def profile(reques):
-    return render(reques, 'profile.html')
+@login_required
+def creartablero(request):
+    if request.method == 'POST':
+        # Obtener datos del formulario
+        nombre = request.POST.get('nombre')
+        descripcion = request.POST.get('descripcion')
+
+        # Obtener el usuario logueado como propietario
+        propietario = request.user
+
+        # Crear el objeto Tablero
+        nuevo_tablero = Tablero(
+            nombre=nombre,
+            descripcion=descripcion,
+            propietario=propietario
+        )
+
+        # Guardar el tablero en la base de datos
+        nuevo_tablero.save()
+
+        # Redirigir a la página de inicio (home)
+        return redirect('home')
+
+    return render(request, 'creartablero.html')
+
+def tarjetaview(request, tablero_id):
+    tablero = get_object_or_404(Tablero, id=tablero_id)
+    tarjetas = Tarjeta.objects.filter(id_tablero=tablero_id)
+    tareas = Tarea.objects.filter(id_tarjeta__in=tarjetas)
+    comentarios = Comentario.objects.filter(tarjeta__in=tarjetas)
+
+    tarea_form = TareaForm()
+    comentario_form = ComentarioForm()
+    tarjeta_form = TarjetaForm()
+
+    if request.method == 'POST':
+        if 'agregar_tarea' in request.POST:
+            tarea_form = TareaForm(request.POST)
+            if tarea_form.is_valid():
+                tarea = tarea_form.save(commit=False)
+                tarea.id_tarjeta = get_object_or_404(Tarjeta, id=request.POST.get('tarjeta_id'))
+                tarea.save()
+        elif 'agregar_comentario' in request.POST:
+            comentario_form = ComentarioForm(request.POST)
+            if comentario_form.is_valid():
+                comentario = comentario_form.save(commit=False)
+                comentario.tarjeta = get_object_or_404(Tarjeta, id=request.POST.get('tarjeta_id'))
+                comentario.save()
+        elif 'agregar_tarjeta' in request.POST:
+            tarjeta_form = TarjetaForm(request.POST)
+            if tarjeta_form.is_valid():
+                tarjeta = tarjeta_form.save(commit=False)
+                tarjeta.id_tablero = tablero
+                tarjeta.save()
+
+    return render(request, 'tarjetaview.html', {'tablero': tablero, 'tarjetas': tarjetas, 'tareas': tareas, 'comentarios': comentarios, 'tarea_form': tarea_form, 'comentario_form': comentario_form, 'tarjeta_form': tarjeta_form})
+def profile(request):
+    return render(request, 'profile.html')

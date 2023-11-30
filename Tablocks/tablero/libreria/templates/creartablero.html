@@ -1,0 +1,30 @@
+<!-- templates/Creartablero.html -->
+
+{% extends 'base.html' %}
+
+{% block title %}Crear Tablero{% endblock %}
+
+{% block content %}
+    <div class="container mt-5">
+        <div class="row">
+            <div class="col-md-6 offset-md-3">
+                <div class="card-body">
+                    <h2 class="card-title">Crear Nuevo Tablero</h2>
+                    <form method="post" action="{% url 'creartablero' %}">
+                        {% csrf_token %}
+                        <div class="mb-3">
+                            <label for="nombre" class="form-label">Nombre del Tablero</label>
+                            <input type="text" class="form-control" id="nombre" name="nombre" required>
+                        </div>
+                        <div class="mb-3">
+                            <label for="descripcion" class="form-label">Descripción del Tablero</label>
+                            <textarea class="form-control" id="descripcion" name="descripcion" rows="3" required></textarea>
+                        </div>
+                        <!-- Otros campos del formulario según tus necesidades -->
+                        <button type="submit" class="btn btn-primary">Crear Tablero</button>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+{% endblock %}

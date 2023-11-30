@@ -4,9 +4,9 @@
  <h2>Bienvenido</h2>
  {% if user.is_authenticated %}
   Hola {{ user.username }}!
-  <a href="/signout" class="btn btn-danger">Cerrar Sesion</a>
+  <a href="{% url 'signout' %}" class="btn btn-danger">Cerrar Sesion</a>
   {% else %}
-  <a href="/signin" class="btn btn-primary"><span class="glyphicon glyphicon-log-in"></span>Iniciar Sesion</a>
-  <a href="/signup" class="btn btn-success">Registrarse</a>
+  <a href="{% url 'signin ' %}" class="btn btn-primary"><span class="glyphicon glyphicon-log-in"></span>Iniciar Sesion</a>
+  <a href="{% url 'signup' %}" class="btn btn-success">Registrarse</a>
   {% endif %}
 {% endblock %}

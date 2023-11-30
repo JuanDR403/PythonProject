@@ -1,0 +1,119 @@
+<!-- templates/tarjetaview.html -->
+
+{% extends 'base.html' %}
+
+{% block title %}Tarjetas del Tablero: {{ tablero.nombre }}{% endblock %}
+
+{% block content %}
+    <div class="container mt-5">
+        <h2>Tarjetas del Tablero: {{ tablero.nombre }}</h2>
+        
+         <!-- Botón para agregar tarjeta -->
+         <button type="button" class="btn btn-success" data-toggle="modal" data-target="#agregarTarjetaModal">
+            Agregar Tarjeta
+        </button>
+
+        <!-- Mostrar todas las tarjetas del tablero -->
+        <div class="row mt-3">
+            {% for tarjeta in tarjetas %}
+                <div class="col-md-4 mb-3">
+                    <div class="card">
+                        <div class="card-body" style="margin: auto;">
+                            <h5 class="card-title" style="padding: auto; text-align: center;">{{ tarjeta.nombre }}</h5>
+                            <a style="background-color: red; padding: 3.5px; border-radius: 10px; margin-left: 50px;">{{ tarjeta.etiquetas }}</a>
+                            <p class="card-text" style="background-color: antiquewhite; border-radius: 10px;  padding: 3.5px;">{{ tarjeta.descripcion }}</p>
+                            <!-- Botón para abrir el modal -->
+                            <button type="button" class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#tarjetaModal{{ tarjeta.id }}">
+                                Ver Detalles
+                            </button>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Modal para mostrar tareas y comentarios existentes -->
+                <div class="modal fade" id="tarjetaModal{{ tarjeta.id }}" tabindex="-1" role="dialog" aria-labelledby="tarjetaModalLabel{{ tarjeta.id }}" aria-hidden="true">
+                    <div class="modal-dialog" role="document">
+                        <div class="modal-content">
+                            <div class="modal-header">
+                                <h5 class="modal-title" id="tarjetaModalLabel{{ tarjeta.id }}">Detalles de la Tarjeta: {{ tarjeta.nombre }}</h5>
+                                <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                                    <span aria-hidden="true">&times;</span>
+                                </button>
+                            </div>
+                            <div class="modal-body">
+                                <!-- Sección para mostrar tareas y comentarios -->
+                                <h6>Tareas:</h6>
+                                {% for tarea in tareas %}
+                                    {% if tarea.id_tarjeta_id == tarjeta.id %}
+                                        <p>Tarea: {{ tarea.descripcion }}</p>
+                                        <p>Estado: {{ tarea.estado }}</p>
+                                        <!-- Puedes mostrar más detalles de la tarea según tus necesidades -->
+                                    {% endif %}
+                                {% endfor %}
+
+                                <h6>Comentarios:</h6>
+                                {% for comentario in comentarios %}
+                                    {% if comentario.tarjeta_id == tarjeta.id %}
+                                        <p>Comentario: {{ comentario.contenido }}</p>
+                                        <!-- Puedes mostrar más detalles del comentario según tus necesidades -->
+                                    {% endif %}
+                                {% endfor %}
+                            </div>
+                            <div class="modal-footer">
+                                <!-- Formulario para agregar tarea -->
+                                <form method="post" action="{% url 'tarjetaview' tablero.id %}">
+                                    {% csrf_token %}
+                                    {{ tarea_form.as_p }}
+                                    <input type="hidden" name="tarjeta_id" value="{{ tarjeta.id }}">
+                                    <button type="submit" name="agregar_tarea" class="btn btn-primary">Agregar Tarea</button>
+                                </form>
+                            
+                                <!-- Formulario para agregar comentario -->
+                                <form method="post" action="{% url 'tarjetaview' tablero.id %}">
+                                    {% csrf_token %}
+                                    {{ comentario_form.as_p }}
+                                    <input type="hidden" name="tarjeta_id" value="{{ tarjeta.id }}">
+                                    <button type="submit" name="agregar_comentario" class="btn btn-primary">Agregar Comentario</button>
+                                </form>
+                            </div>
+                            
+                        </div>
+                    </div>
+                </div>
+                                <!-- Modal para agregar tarjeta -->
+                <div class="modal fade" id="agregarTarjetaModal" tabindex="-1" role="dialog" aria-labelledby="agregarTarjetaModalLabel" aria-hidden="true">
+                    <div class="modal-dialog" role="document">
+                        <div class="modal-content">
+                            <div class="modal-header">
+                                <h5 class="modal-title" id="agregarTarjetaModalLabel">Agregar Tarjeta</h5>
+                                <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                                    <span aria-hidden="true">&times;</span>
+                                </button>
+                            </div>
+                            <div class="modal-body">
+                                <!-- Formulario para agregar tarjeta -->
+                                <form method="post" action="{% url 'tarjetaview' tablero.id %}">
+                                    {% csrf_token %}
+                                    <div class="form-group">
+                                        <label for="id_nombre">Nombre:</label>
+                                        <input type="text" name="nombre" class="form-control" id="id_nombre" required>
+                                    </div>
+                                    <div class="form-group">
+                                        <label for="id_descripcion">Descripción:</label>
+                                        <textarea name="descripcion" class="form-control" id="id_descripcion" required></textarea>
+                                    </div>
+                                    <div class="form-group">
+                                        <label for="id_etiquetas">Etiquetas:</label>
+                                        <input type="text" name="etiquetas" class="form-control" id="id_etiquetas" required>
+                                    </div>
+                                    <button type="submit" class="btn btn-primary">Guardar</button>
+                                </form>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+            {% endfor %}
+        </div>
+    </div>
+{% endblock %}
