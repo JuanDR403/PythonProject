@@ -1,0 +1,18 @@
+<!-- templates/historial.html -->
+
+{% extends 'base.html' %}
+
+{% block title %}Historial{% endblock %}
+
+{% block content %}
+{% if user.is_authenticated %}
+    <div class="container mt-3">
+        <h2>Historial de Acciones</h2>
+        <ul>
+            {% for entrada in historial %}
+                <li>{{ entrada }}</li>
+            {% endfor %}
+        </ul>
+    </div>
+{% endif %}
+{% endblock %}

@@ -1,10 +1,12 @@
 from django.db import models
 from django.contrib.auth.models import User
+from datetime import datetime
 
 class Tablero(models.Model):
     nombre = models.CharField(max_length=255)
     descripcion = models.TextField()
     propietario = models.ForeignKey(User, on_delete=models.CASCADE)
+    usuarios_permitidos = models.ManyToManyField(User, related_name='tableros_permitidos', blank=True)
     fecha_creacion = models.DateTimeField(auto_now_add=True)
 
     def __str__(self):
@@ -45,3 +47,11 @@ class Comentario(models.Model):
 
     def __str__(self):
         return self.contenido
+    
+class Historial(models.Model):
+    usuario = models.ForeignKey(User, on_delete=models.CASCADE)
+    accion = models.CharField(max_length=255)
+    fecha = models.DateTimeField(default=datetime.now)
+
+    def __str__(self):
+        return f'{self.usuario.username} - {self.accion} - {self.fecha}'

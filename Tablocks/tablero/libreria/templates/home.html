@@ -3,8 +3,8 @@
 {% block title %}Home{% endblock %}
 
 {% block content %}
-    <div class="container mt-5">
-        <div class="row">
+<div class="container-fluid mt-5">
+    <div class="row">
             <div class="col-md-6 offset-md-3">
                 <div class="card-body">
                     <h2 class="card-title">Bienvenido a Tablero</h2>
@@ -25,13 +25,13 @@
 <!-- Resto del contenido -->
 
 <!-- Mostrar todos los tableros en tarjetas -->
-<div class="row mt-5">
-    
+<!-- Mostrar todos los tableros en tarjetas -->
+<div class="row mt-3">
     {% for tablero in tableros %}
-        <div class="col-md-4 mb-3">
-            <div class="card">
-                <div class="card-body">
-                    {% if tablero.nombre %}
+    <div class="col-md-4 col-sm-12 mb-3">
+        <div class="card">
+            <div class="card-body">
+                {% if tablero.nombre %}
                         <h5 class="card-title">{{ tablero.nombre }}</h5>
                     {% else %}
                         <h5 class="card-title">Nombre no definido</h5>
@@ -41,13 +41,13 @@
                     {% else %}
                         <p class="card-text">Descripción no definida</p>
                     {% endif %}
+                    <p class="card-text">Creado por: {{ tablero.propietario.username }}</p>
                     <a href="{% url 'tarjetaview' tablero.id %}" class="btn btn-info mt-3">Ver Tarjetas</a>
                 </div>
             </div>
         </div>
     {% endfor %}
 </div>
-
 
 
 <!-- Resto del contenido -->

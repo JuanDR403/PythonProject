@@ -17,6 +17,8 @@ urlpatterns = [
     path('tarjetaview/<int:tablero_id>/', views.tarjetaview, name='tarjetaview'),
     path('agregar_tarea/<int:tarjeta_id>/', views.tarjetaview, name='agregar_tarea'),
     path('agregar_comentario/<int:tarjeta_id>/', views.tarjetaview, name='agregar_comentario'),
+     path('borrar_tablero/<int:tablero_id>/', views.borrar_tablero, name='borrar_tablero'),
+     path('borrar_tarjeta/<int:tarjeta_id>/', views.borrar_tarjeta, name='borrar_tarjeta'),
 ]
 
 # Añade estas líneas para servir archivos estáticos durante el desarrollo.

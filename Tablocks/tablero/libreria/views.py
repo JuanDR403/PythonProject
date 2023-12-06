@@ -2,9 +2,10 @@ from django.shortcuts import render, redirect, get_object_or_404
 from django.contrib.auth.forms import UserCreationForm, AuthenticationForm
 from django.contrib.auth.decorators import login_required
 from django.contrib.auth import authenticate, login, logout
+from django.contrib.auth.models import User
 from django.http import JsonResponse
-from .models import Tablero, Tarjeta, Tarea, Comentario
-from .forms import TareaForm, ComentarioForm, TarjetaForm
+from .models import Tablero, Tarjeta, Tarea, Comentario, Historial
+from .forms import TareaForm, ComentarioForm, TarjetaForm, TableroForm
 from django.contrib.auth.decorators import permission_required
 
 
@@ -66,42 +67,39 @@ def signin(request):
 def creartablero(request):
     if request.method == 'POST':
         # Obtener datos del formulario
-        nombre = request.POST.get('nombre')
-        descripcion = request.POST.get('descripcion')
+        tablero_form = TableroForm(request.POST)
+        if tablero_form.is_valid():
+            nuevo_tablero = tablero_form.save(commit=False)
 
-        # Obtener el usuario logueado como propietario
-        propietario = request.user
+            # Asignar al usuario logueado como propietario
+            nuevo_tablero.propietario = request.user
+            nuevo_tablero.save()
 
-        # Crear el objeto Tablero
-        nuevo_tablero = Tablero(
-            nombre=nombre,
-            descripcion=descripcion,
-            propietario=propietario
-        )
+            # Agregar al propietario a la lista de usuarios permitidos
+            nuevo_tablero.usuarios_permitidos.add(request.user)
 
-        # Guardar el tablero en la base de datos
-        nuevo_tablero.save()
+            # Redirigir a la página de inicio (home)
+            return redirect('home')
+    else:
+        tablero_form = TableroForm()
 
-        # Redirigir a la página de inicio (home)
-        return redirect('home')
-
-    return render(request, 'creartablero.html')
+    return render(request, 'creartablero.html', {'tablero_form': tablero_form})
 
 @login_required
 def tarjetaview(request, tablero_id):
     tablero = get_object_or_404(Tablero, id=tablero_id)
 
-    # Verificar si el usuario actual es el creador del tablero
-    if request.user != tablero.propietario:
-        return redirect('home')  # O redirige a la página que desees si el usuario no es el creador
-
+    # Verificar si el usuario actual es el propietario del tablero o está en la lista de usuarios permitidos
+    if request.user != tablero.propietario and request.user not in tablero.usuarios_permitidos.all():
+        return redirect('home')  # O redirige a la página que desees si el usuario no tiene permiso
+    
     tarjetas = Tarjeta.objects.filter(id_tablero=tablero_id)
     tareas = Tarea.objects.filter(id_tarjeta__in=tarjetas)
     comentarios = Comentario.objects.filter(tarjeta__in=tarjetas)
 
     tarea_form = TareaForm()
     comentario_form = ComentarioForm()
-    tarjeta_form = TarjetaForm()
+    tarjeta_form = TarjetaForm(request.POST or None)
 
     if request.method == 'POST':
         if 'agregar_tarea' in request.POST:
@@ -123,6 +121,10 @@ def tarjetaview(request, tablero_id):
                 tarjeta = tarjeta_form.save(commit=False)
                 tarjeta.id_tablero = tablero
                 tarjeta.save()
+                
+                # Redirige al usuario a la misma página para evitar reenviar el formulario al recargar
+                return redirect('tarjetaview', tablero_id=tablero_id)
+                
         elif 'editar_tarea' in request.POST:
             tarea_form = TareaForm(request.POST)
             if tarea_form.is_valid():
@@ -130,9 +132,42 @@ def tarjetaview(request, tablero_id):
                 tarea = get_object_or_404(Tarea, id=tarea_id)
                 tarea.estado = tarea_form.cleaned_data['estado']
                 tarea.save()
+        # Agregar usuarios permitidos al tablero
+        elif 'agregar_usuarios_permitidos' in request.POST:
+            usuarios_permitidos = request.POST.get('usuarios_permitidos')
+            if usuarios_permitidos:
+                usuarios_permitidos_list = usuarios_permitidos.split(',')
+                for username in usuarios_permitidos_list:
+                    usuario_permitido = User.objects.get(username=username.strip())
+                    tablero.usuarios_permitidos.add(usuario_permitido)
+                tablero.save()
 
-    return render(request, 'tarjetaview.html', {'tablero': tablero, 'tarjetas': tarjetas, 'tareas': tareas, 'comentarios': comentarios, 'tarea_form': tarea_form, 'comentario_form': comentario_form})
-
+    return render(request, 'tarjetaview.html', {'tablero': tablero, 'tarjetas': tarjetas, 'tareas': tareas, 'comentarios': comentarios, 'tarea_form': tarea_form, 'comentario_form': comentario_form, 'tarjeta_form': tarjeta_form})
 
 def profile(request):
     return render(request, 'profile.html')
+
+
+@login_required
+def borrar_tablero(request, tablero_id):
+    tablero = get_object_or_404(Tablero, id=tablero_id)
+
+    # Verificar si el usuario actual es el propietario del tablero
+    if request.user == tablero.propietario:
+        tablero.delete()
+    
+    return redirect('home')
+
+@login_required
+def borrar_tarjeta(request, tarjeta_id):
+    tarjeta = get_object_or_404(Tarjeta, id=tarjeta_id)
+
+    # Verificar si el usuario actual es el propietario de la tarjeta o del tablero
+    if request.user == tarjeta.id_tablero.propietario:
+        tarjeta.delete()
+    
+    return redirect('tarjetaview', tablero_id=tarjeta.id_tablero.id)
+
+def historial_view(request):
+    historial = Historial.objects.all().order_by('-fecha')  # Obtener todas las entradas del historial
+    return render(request, 'historial.html', {'historial': historial})

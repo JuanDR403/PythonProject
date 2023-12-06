@@ -5,31 +5,52 @@
 {% block title %}Tarjetas del Tablero: {{ tablero.nombre }}{% endblock %}
 
 {% block content %}
-<center>
-    <div class="container mt-5">
-        <h2>Tarjetas del Tablero: {{ tablero.nombre }}</h2>
-        
-        <!-- Botón para agregar tarjeta -->
-        <button type="button" class="btn btn-success" data-toggle="modal" data-target="#agregarTarjetaModal">
-            Agregar Tarjeta
-        </button>
 
-        <!-- Mostrar todas las tarjetas del tablero -->
-        <div class="row mt-3">
-            {% for tarjeta in tarjetas %}
-                <div class="col-md-4 mb-3">
-                    <div class="card">
-                        <div class="card-body" style="margin: auto;">
-                            <h5 class="card-title" style="padding: auto; text-align: center;">{{ tarjeta.nombre }}</h5>
-                            <a style="background-color: red; padding: 3.5px; border-radius: 10px; margin-left: 50px;">{{ tarjeta.etiquetas }}</a>
-                            <p class="card-text" style="background-color: antiquewhite; border-radius: 10px;  padding: 3.5px;">{{ tarjeta.descripcion }}</p>
-                            <!-- Botón para abrir el modal -->
-                            <button type="button" class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#tarjetaModal{{ tarjeta.id }}">
-                                Ver Detalles
-                            </button>
-                        </div>
+<div class="container-fluid mt-5">
+    <h2 class="text-center">Tarjetas del Tablero: {{ tablero.nombre }}</h2>
+
+    <!-- Botón para agregar tarjeta -->
+    <button type="button" class="btn btn-success mx-auto" data-toggle="modal" data-target="#agregarTarjetaModal">
+        Agregar Tarjeta
+    </button>
+
+    <!-- Agregar usuarios permitidos al tablero -->
+    {% if request.user == tablero.propietario %}
+        <div class="mt-3 text-center">
+            <form method="post" action="{% url 'tarjetaview' tablero.id %}">
+                {% csrf_token %}
+                <label for="id_usuarios_permitidos">Usuarios Permitidos (separados por coma):</label>
+                <input type="text" name="usuarios_permitidos" class="form-control" id="id_usuarios_permitidos">
+                <button type="submit" name="agregar_usuarios_permitidos" class="btn btn-primary mt-2">Agregar Usuarios Permitidos</button>
+            </form>
+        </div>
+         <!-- Formulario para borrar tablero -->
+         <form method="post" action="{% url 'borrar_tablero' tablero.id %}" class="mt-3">
+            {% csrf_token %}
+            <button type="submit" name="borrar_tablero" class="btn btn-danger">Borrar Tablero</button>
+        </form>
+    {% endif %}
+    
+    <!-- Mostrar todas las tarjetas del tablero en disposición horizontal -->
+    <div class="row mt-3">
+        {% for tarjeta in tarjetas %}
+            <div class="col-md-4 col-sm-12 mb-3">
+                <div class="card">
+                    <div class="card-body">
+                        <h5 class="card-title text-center">{{ tarjeta.nombre }}</h5>
+                        <a class="badge badge-danger d-block mx-auto" style="margin-bottom: 10px;">{{ tarjeta.etiquetas }}</a>
+                        <p class="card-text">{{ tarjeta.descripcion }}</p>
+                        <!-- Botón para abrir el modal -->
+                        <button type="button" class="btn btn-primary d-block mx-auto" data-bs-toggle="modal" data-bs-target="#tarjetaModal{{ tarjeta.id }}">
+                            Ver Detalles
+                        </button>
+                        <form method="post" action="{% url 'borrar_tarjeta' tarjeta.id %}">
+                            {% csrf_token %}
+                            <button type="submit" name="borrar_tarjeta" class="btn btn-danger mt-2">Borrar Tarjeta</button>
+                        </form>
                     </div>
                 </div>
+            </div>
 
                 <!-- Modal para mostrar tareas y comentarios existentes -->
                 <div class="modal fade" id="tarjetaModal{{ tarjeta.id }}" tabindex="-1" role="dialog" aria-labelledby="tarjetaModalLabel{{ tarjeta.id }}" aria-hidden="true">
@@ -37,9 +58,7 @@
                         <div class="modal-content">
                             <div class="modal-header">
                                 <h5 class="modal-title" id="tarjetaModalLabel{{ tarjeta.id }}">Detalles de la Tarjeta: {{ tarjeta.nombre }}</h5>
-                                <button type="button" class="close" data-dismiss="modal" aria-label="Close">
-                                    <span aria-hidden="true">&times;</span>
-                                </button>
+                                    
                             </div>
                             <div class="modal-body">
                                 <!-- Sección para mostrar tareas y comentarios -->
@@ -56,7 +75,7 @@
                                         </form>
                                     {% endif %}
                                 {% endfor %}
-
+                                        
                                 <h6>Comentarios:</h6>
                                 {% for comentario in comentarios %}
                                     {% if comentario.tarjeta_id == tarjeta.id %}
@@ -90,8 +109,6 @@
                                     <button type="submit" name="agregar_comentario" class="btn btn-primary mb-2">Agregar Comentario</button>
                                 </form>
                             </div>
-                            
-                            
                         </div>
                     </div>
                 </div>
@@ -104,9 +121,6 @@
                 <div class="modal-content">
                     <div class="modal-header">
                         <h5 class="modal-title" id="agregarTarjetaModalLabel">Agregar Tarjeta</h5>
-                        <button type="button" class="close" data-dismiss="modal" aria-label="Close">
-                            <span aria-hidden="true">&times;</span>
-                        </button>
                     </div>
                     <div class="modal-body">
                         <!-- Formulario para agregar tarjeta -->
@@ -131,5 +145,5 @@
             </div>
         </div>
     </div>
-</center>
+
 {% endblock %}
