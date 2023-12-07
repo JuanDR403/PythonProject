@@ -85,14 +85,17 @@ def creartablero(request):
 
     return render(request, 'creartablero.html', {'tablero_form': tablero_form})
 
+from django.shortcuts import render, redirect, get_object_or_404
+from .models import Tablero, Tarjeta, Tarea, Comentario
+from .forms import TareaForm, ComentarioForm, TarjetaForm
+from django.contrib.auth.decorators import login_required
+from django.contrib.auth.models import User
+
 @login_required
 def tarjetaview(request, tablero_id):
     tablero = get_object_or_404(Tablero, id=tablero_id)
 
-    # Verificar si el usuario actual es el propietario del tablero o está en la lista de usuarios permitidos
-    if request.user != tablero.propietario and request.user not in tablero.usuarios_permitidos.all():
-        return redirect('home')  # O redirige a la página que desees si el usuario no tiene permiso
-    
+    # Inicializar tarjetas fuera del bloque if
     tarjetas = Tarjeta.objects.filter(id_tablero=tablero_id)
     tareas = Tarea.objects.filter(id_tarjeta__in=tarjetas)
     comentarios = Comentario.objects.filter(tarjeta__in=tarjetas)
@@ -100,6 +103,11 @@ def tarjetaview(request, tablero_id):
     tarea_form = TareaForm()
     comentario_form = ComentarioForm()
     tarjeta_form = TarjetaForm(request.POST or None)
+
+    # Verificar si el usuario actual está en la lista de usuarios permitidos
+    if request.user not in tablero.usuarios_permitidos.all():
+        # Si el usuario no tiene permiso, aún permitir ver las tarjetas
+        return render(request, 'tarjetaview.html', {'tablero': tablero, 'tarjetas': tarjetas, 'tareas': tareas, 'comentarios': comentarios, 'tarea_form': tarea_form, 'comentario_form': comentario_form, 'tarjeta_form': tarjeta_form})    
 
     if request.method == 'POST':
         if 'agregar_tarea' in request.POST:
@@ -116,6 +124,10 @@ def tarjetaview(request, tablero_id):
                 comentario.usuario = request.user  # Asigna el usuario actual
                 comentario.save()
         elif 'agregar_tarjeta' in request.POST:
+            # Verificar si el usuario actual es el propietario del tablero
+            if request.user != tablero.propietario:
+                return redirect('home')  # O redirige a la página que desees si el usuario no tiene permiso
+            
             tarjeta_form = TarjetaForm(request.POST)
             if tarjeta_form.is_valid():
                 tarjeta = tarjeta_form.save(commit=False)
@@ -143,6 +155,7 @@ def tarjetaview(request, tablero_id):
                 tablero.save()
 
     return render(request, 'tarjetaview.html', {'tablero': tablero, 'tarjetas': tarjetas, 'tareas': tareas, 'comentarios': comentarios, 'tarea_form': tarea_form, 'comentario_form': comentario_form, 'tarjeta_form': tarjeta_form})
+
 
 def profile(request):
     return render(request, 'profile.html')

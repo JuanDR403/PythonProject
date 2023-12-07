@@ -10,9 +10,11 @@
     <h2 class="text-center">Tarjetas del Tablero: {{ tablero.nombre }}</h2>
 
     <!-- Botón para agregar tarjeta -->
-    <button type="button" class="btn btn-success mx-auto" data-toggle="modal" data-target="#agregarTarjetaModal">
-        Agregar Tarjeta
-    </button>
+    {% if request.user in tablero.usuarios_permitidos.all %}
+        <button type="button" class="btn btn-success mx-auto" data-toggle="modal" data-target="#agregarTarjetaModal">
+            Agregar Tarjeta
+        </button>
+    {% endif %}
 
     <!-- Agregar usuarios permitidos al tablero -->
     {% if request.user == tablero.propietario %}
@@ -44,10 +46,12 @@
                         <button type="button" class="btn btn-primary d-block mx-auto" data-bs-toggle="modal" data-bs-target="#tarjetaModal{{ tarjeta.id }}">
                             Ver Detalles
                         </button>
+                        {% if request.user in tablero.usuarios_permitidos.all %}
                         <form method="post" action="{% url 'borrar_tarjeta' tarjeta.id %}">
                             {% csrf_token %}
                             <button type="submit" name="borrar_tarjeta" class="btn btn-danger mt-2">Borrar Tarjeta</button>
                         </form>
+                        {% endif %}
                     </div>
                 </div>
             </div>
@@ -67,12 +71,14 @@
                                     {% if tarea.id_tarjeta_id == tarjeta.id %}
                                         <p>Tarea: {{ tarea.descripcion }}</p>
                                         <!-- Formulario para editar el estado de la tarea -->
+                                        {% if request.user in tablero.usuarios_permitidos.all %}
                                         <form method="post" action="{% url 'tarjetaview' tablero.id %}">
                                             {% csrf_token %}
                                             {{ tarea_form.as_p }}
                                             <input type="hidden" name="tarea_id" value="{{ tarea.id }}">
                                             <button type="submit" name="editar_tarea" class="btn btn-primary">Editar Tarea</button>
                                         </form>
+                                        {% endif %}
                                     {% endif %}
                                 {% endfor %}
                                         
@@ -85,6 +91,7 @@
                                 {% endfor %}
 
                             </div>
+                            {% if request.user in tablero.usuarios_permitidos.all %}
                             <div class="modal-footer">
                                 <!-- Formulario para agregar tarea -->
                                 <form method="post" action="{% url 'tarjetaview' tablero.id %}" class="form-inline">
@@ -109,6 +116,8 @@
                                     <button type="submit" name="agregar_comentario" class="btn btn-primary mb-2">Agregar Comentario</button>
                                 </form>
                             </div>
+                            {% endif %}
+
                         </div>
                     </div>
                 </div>
@@ -116,6 +125,7 @@
         </div>
 
         <!-- Modal para agregar tarjeta -->
+        {% if request.user in tablero.usuarios_permitidos.all %}
         <div class="modal fade" id="agregarTarjetaModal" tabindex="-1" role="dialog" aria-labelledby="agregarTarjetaModalLabel" aria-hidden="true">
             <div class="modal-dialog" role="document">
                 <div class="modal-content">
@@ -144,6 +154,7 @@
                 </div>
             </div>
         </div>
+        {% endif %}
     </div>
 
 {% endblock %}
